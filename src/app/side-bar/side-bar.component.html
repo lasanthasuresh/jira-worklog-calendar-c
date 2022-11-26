@@ -1,0 +1,25 @@
+<div class='demo-app-sidebar'>
+    <div class='demo-app-sidebar-section'>
+        <h3>Instructions</h3>
+        <ul>
+            <li>Your recently viewed 100 tickets are listed below.</li>
+            <li>You can use the calendar to create worklogs there.</li>
+        </ul>
+    </div>
+    <div class='demo-app-sidebar-section tickets-bar'>
+        <h3>Tickets</h3>
+        <div class="">
+            <input type="text" class="form-control" [(ngModel)]="filter">
+        </div>
+        <div class="tickets-holder">
+            <ul class="list-group" dragula="ABC">
+                <li class="list-group-item" *ngFor="let ticket of filteredTickets">
+                    <strong><a [href]="ticket.url" target="_blank">{{ticket.key}}</a></strong>
+                    <span> {{ticket.summary}}</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</div>

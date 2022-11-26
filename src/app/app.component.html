@@ -1,1 +1,2 @@
-<router-outlet></router-outlet>
+<app-login *ngIf="!loggedInUser" (loggedIn)="onUserLoggedIn($event)"></app-login>
+<app-main *ngIf="loggedInUser" (logOff)="onUserLoggOff($event)"></app-main>

@@ -1,46 +1,78 @@
-import {app, BrowserWindow, screen} from 'electron';
+import { app, BrowserWindow, screen, ipcMain, safeStorage } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as settings from 'electron-settings';
+
+const getSetting = async (event, key: string) => {
+  const value = await settings.get (key) as string;
+  if (!Boolean (value) || !safeStorage.isEncryptionAvailable ()) {
+    return value;
+  }
+  const buff = new Buffer (value, 'base64');
+  return safeStorage.decryptString (buff);
+};
+
+const setSetting = async (event, key: string, value: string) => {
+
+  if (!Boolean (value)) {
+    await settings.set (key, value);
+  }
+
+  if (!safeStorage.isEncryptionAvailable ()) {
+    await settings.set (key, value);
+  }
+  const encrypted = safeStorage.encryptString (value);
+  const encoded = encrypted.toString ('base64');
+  await settings.set (key, encoded);
+};
 
 let win: BrowserWindow = null;
-const args = process.argv.slice(1),
-  serve = args.some(val => val === '--serve');
+const args = process.argv.slice (1),
+  serve = args.some (val => val === '--serve');
 
-function createWindow(): BrowserWindow {
+function createWindow (): BrowserWindow {
 
-  const size = screen.getPrimaryDisplay().workAreaSize;
+  const size = screen.getPrimaryDisplay ().workAreaSize;
 
   // Create the browser window.
-  win = new BrowserWindow({
+  win = new BrowserWindow ({
     x: 0,
     y: 0,
     width: size.width,
     height: size.height,
     webPreferences: {
+      webSecurity: false,
       nodeIntegration: true,
-      allowRunningInsecureContent: (serve),
-      contextIsolation: false,  // false if you want to run e2e test with Spectron
+      preload: path.join (__dirname, 'preload.ts'),
+      allowRunningInsecureContent: ( serve ),
+      contextIsolation: true,  // false if you want to run e2e test with Spectron
     },
   });
-
+  win.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    require('electron').shell.openExternal(url);
+  });
   if (serve) {
     const debug = require('electron-debug');
     debug();
 
-    require('electron-reloader')(module);
-    win.loadURL('http://localhost:4200');
+    require ('electron-reloader') (module);
+    win.loadURL ('http://localhost:4200', { userAgent: 'jira-worklog-lol' });
   } else {
     // Path when running electron executable
     let pathIndex = './index.html';
+    console.log(__dirname);
+    console.log(path.join(__dirname,pathIndex));
 
     if (fs.existsSync(path.join(__dirname, '../dist/index.html'))) {
-       // Path when running electron in local folder
+      // Path when running electron in local folder
       pathIndex = '../dist/index.html';
     }
-
+    console.log(path.join(__dirname,pathIndex));
     const url = new URL(path.join('file:', __dirname, pathIndex));
-    win.loadURL(url.href);
+    win.loadURL(url.href,{ userAgent: 'jira-worklog-lol' });
   }
+
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -54,26 +86,21 @@ function createWindow(): BrowserWindow {
 }
 
 try {
-  // This method will be called when Electron has finished
-  // initialization and is ready to create browser windows.
-  // Some APIs can only be used after this event occurs.
-  // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-  app.on('ready', () => setTimeout(createWindow, 400));
+  app.whenReady ().then (() => {
+    ipcMain.handle ('store:getSetting', getSetting);
+    ipcMain.handle ('store:setSetting', setSetting);
+    createWindow ();
+    app.on ('activate', function () {
+      if (BrowserWindow.getAllWindows ().length === 0) createWindow ();
+    });
+  });
 
   // Quit when all windows are closed.
-  app.on('window-all-closed', () => {
+  app.on ('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
-      app.quit();
-    }
-  });
-
-  app.on('activate', () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-      createWindow();
+      app.quit ();
     }
   });
 
@@ -81,3 +108,5 @@ try {
   // Catch Error
   // throw e;
 }
+// "started": "2022-11-02T12:00:00.000+0530"
+// "started": "2022-11-14T03:30:00.000Z"

@@ -9,5 +9,6 @@
   "main": "main.js",
   "private": true,
   "dependencies": {
+    "electron-settings": "^4.0.2"
   }
 }

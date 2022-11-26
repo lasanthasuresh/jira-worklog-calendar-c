@@ -1,0 +1,66 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Add worklog</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="cancel()"></button>
+    </div>
+    <div class="modal-body">
+        <div id="testmodal" style="padding: 5px 20px;">
+            <form id="antoform" class="row g-3" role="form">
+
+                <div class="col-md-12" *ngIf="!currentJira">
+                    <input type="text" name="find-ticket" id="find-ticket" class="form-control col"
+                           [(ngModel)]="currentJira"
+                           [ngbTypeahead]="search"
+                           [resultTemplate]="rt"
+                           [editable]="false"
+                           [inputFormatter]="formatter">
+                    <ng-template #rt let-r="result" let-t="term">
+                        <strong>{{r.key}}  </strong> - <span>{{r.summary}}</span>
+                        <ngb-highlight [result]="r.name" [term]="t"></ngb-highlight>
+                    </ng-template>
+                </div>
+                <div class="col-md-12" *ngIf="currentJira">
+                    <strong>{{currentJira.key}}  </strong> - <span>{{currentJira.summary}}</span>
+                    <button
+                            type="button"
+                            class="btn-close"
+                            aria-label="Close"
+                            (click)="currentJira=null"
+                    ></button>
+                </div>
+
+                <div class="col-md-4" *ngIf="!hasMultipleDates">
+                    <label for="date" class="form-label">Affecting Date</label>
+                    <input type="date" [value]="dataModel.affectingDate| date: 'yyyy-MM-dd'" readonly
+                           class="form-control" id="date">
+                </div>
+                <div class="col-md-12" *ngIf="hasMultipleDates">
+                    <label for="dates" class="form-label">Affecting Dates</label>
+                    <input type="text" name="dates" [(ngModel)]="dataModel.affectingDates" readonly class="form-control"
+                           id="dates">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="startAt">Time Started<sup
+                            class="mandatory">*</sup></label>
+                    <input type="time" class="form-control" id="startAt" name="startAt" [(ngModel)]="dataModel.timeStarted">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="duration">Time Spent<sup class="mandatory">*</sup></label>
+                    <input type="text" class="form-control" [(ngModel)]="dataModel.timeSpent" id="duration"
+                           name="title">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label" for="comment">Comment</label>
+                    <textarea class="form-control" style="height:55px;" [(ngModel)]="dataModel.comment" id="comment"
+                              name="descr"></textarea>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="save()">Add</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" (click)="cancel()">Cancel
+        </button>
+    </div>
+</div>

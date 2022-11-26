@@ -1,0 +1,19 @@
+
+.demo-app-sidebar {
+  line-height: 1.5;
+  background: #e8e8e8;
+  border-right: 1px solid #d3e2e8;
+  height: 100%;
+}
+
+.demo-app-sidebar-section {
+  padding: 2em;
+}
+
+.demo-app-sidebar-section.tickets-bar {
+  overflow-y: scroll;
+  height: calc(100vh - 300px);
+}
+.tickets-holder{
+  margin-top:1em;
+}
